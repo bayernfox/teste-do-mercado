@@ -1,15 +1,15 @@
-﻿<!--
+<!--
 	Matheus Pereira
 	teste-do-mercado
 	v1.0
-	29/03/2016
+	31/03/2016
  -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 	<head>
-		adadadadadadaadadadasdad
 	
 		<!-- CSS -->
+		<!-- bootstrap -->	
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 		
 		<!-- JavaScript -->
@@ -17,15 +17,17 @@
 		<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
 		<!-- AngularJS -->
 		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
-		<!-- Bootstrap -->		
+		<!-- bootstrap -->		
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-		<!-- Controller -->
-		<script src="controller.js"></script>
-		<!-- Script local -->
-		<script>
-			$(function() {
-				$('#txtPreco').maskMoney();
-			})
+		<!-- controller -->
+		<script src="js/controller.js"></script>
+		<!-- mascara para campos money(dinheiro/moeda) -->
+		<script src="js/jquery.maskMoney.js"></script>
+		<!-- define o campo Preço como um campo monetário -->
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$("#txtPreco").maskMoney();
+			});
 		</script>
 		
 		<title>
@@ -34,11 +36,14 @@
 		
 	</head>
 	<body>
+		
 		<div class="container" ng-app="myApp" ng-controller="myCtrl">
+		
+			<h1>teste-do-mercado</h1>
 		
 			<hr/>
 			
-			<form role="form" name="frmNegociacao" id="frmNegociacao">
+			<form role="form" name="frmNegociacao" id="frmNegociacao" method="get">
 				
 				<div class="row">
 					<div class="col-sm-offset-4 col-sm-2">
@@ -65,14 +70,14 @@
 					</div>
 					<div class="col-sm-2">
 						Preço:
-						<input type="number" class="form-control" name="txtPreco" id="txtPreco" ng-keyup="mascaraMoeda(this.value);" ng-model="item.preco"/>
+						<input type="text" class="form-control" name="txtPreco" id="txtPreco" data-thousands="." data-decimal="," ng-model="item.preco"/>
 					</div>					
 				</div>
 				
 				<div class="row">
 					<div class="col-sm-offset-4 col-sm-2">
 						Tipo do Negócio:
-						<select class="form-control" name="txtTipoNegocio" id="txtTipoNegocio" ng-model="item.tipoNegocio">
+						<select class="form-control" name="slcTipoNegocio" id="slcTipoNegocio" ng-model="item.tipoNegocio">
 							<option value="Compra">Compra</option>
 							<option value="Venda">Venda</option>
 						</select>
@@ -82,14 +87,15 @@
 				<br/>
 				
 				<div class="row" align="center">
-					<button class="btn btn-primary" name="btnAdicionar" id="btnAdicionar" ng-click="adicionarItem();limparCampos()">Adicionar</button>
+					<button class="btn btn-primary" name="btnAdicionar" id="btnAdicionar" ng-click="validar()">Adicionar</button>
 					<button class="btn btn-primary" name="btnLimpar" id="btnLimpar" ng-click="limparCampos()">Limpar</button>
 				</div>
-			
+
 			</form>
 			
 			<hr/>
 			
+			<!-- tabela de itens adicionados -->
 			<div class="table-responsive">
 				<table class="table table-striped">
 					<thead>
@@ -105,6 +111,7 @@
 						</tr>
 					</thead>
 					<tbody>
+						<!-- preenche a tabela com todos os itens da lista -->
 						<tr ng-repeat="item in itens">
 							<td>{{ item.codigoNegociacao }}</td>
 							<td>{{ item.codigoMercadoria }}</td>
@@ -113,12 +120,49 @@
 							<td>{{ item.quantidade }}</td>
 							<td>{{ item.valorTotal }} ({{ item.preco }})</td>
 							<td>{{ item.tipoNegocio }}</td>
-							<td><div style="cursor:hand"><span class="glyphicon glyphicon-trash"  aria-hidden="true" ng-click="excluirItem($index)"></span></div></td>
+							<td><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="definirIndex($index);alert($index);"></span></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 			
+			<!-- modal/janela tem a função de um alert() -->
+			<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalValidarCampos" id="modalValidarCampos">
+				<div class="modal-dialog modal-sm">
+					<div class="modal-content">
+						 <div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" id="myModalLabel">Adicionar Item</h4>
+						</div>
+						<div class="modal-body">
+							Para adicionar uma nova negociação, preencha os campos destacados!
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- modal/janela para confirmar se deseja excluir o item selecionado -->
+			<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalExcluir" id="modalExcluir">
+				<div class="modal-dialog modal-sm">
+					<div class="modal-content">
+						 <div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" id="myModalLabel">Excluir Item</h4>
+						</div>
+						<div class="modal-body">
+							Deseja realmente excluir este item?
+						</div>
+						<div class="modal-footer">						
+							<button type="button" class="btn btn-primary" id="btnExcluir" ng-click="excluirItem()" data-dismiss="modal">Excluir</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		
 		</div>
 	
 	</body>
