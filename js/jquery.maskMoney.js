@@ -1,4 +1,3 @@
-/* nao produzi nenhuma das linhas desse codigo, apenas utilizei suas funcionalidades */
 (function ($) {
     "use strict";
     if (!$.browser) {
